@@ -10,10 +10,19 @@ class Main {
         // Code to take input from the command line
         // This input is passed to the processCommand
         // method in SRPN.java
-        SRPN sprn = new SRPN();
 
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        //Constructor
+        SRPN sprn = new SRPN();  //new object "srpn"
+        //BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));  //new object "reader"
 
+        //Manual hardcoded input
+        String manualcommand = "=";
+        sprn.processCommand(manualcommand);
+
+
+        /*------------------ commented section; WIP -------------------------------
+
+        //Method processing input from input source (script test file or keyboard)
         try {
             //Keep on accepting input from the command-line
             while(true) {
@@ -27,9 +36,13 @@ class Main {
                 sprn.processCommand(command);
             }
         }
+        //Stop while(true) loop if an exception when accessing input is found
         catch(IOException e) {
             System.err.println(e.getMessage());
             System.exit(1);
         }
+
+       ------------------ commented section; WIP -------------------------------*/
+       //
     }
 }
