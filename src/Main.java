@@ -12,12 +12,12 @@ class Main {
         // method in SRPN.java
 
         //Constructor
-        SRPN sprn = new SRPN();  //new object "srpn"
+        SRPN srpn = new SRPN();  //new object "srpn"
         //BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));  //new object "reader"
 
         //Manual hardcoded input
-        String manualcommand = "=";
-        sprn.processCommand(manualcommand);
+        String manualcommand = "-00000000000000000012";
+        srpn.processCommand(manualcommand);
 
 
         /*------------------ commented section; WIP -------------------------------
