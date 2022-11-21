@@ -16,7 +16,8 @@ class Main {
         //BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));  //new object "reader"
 
         //Manual hardcoded input
-        String manualcommand = "-00000000000000000012";
+
+        String manualcommand = "1(92.)4*<-7.03-";//"-1(92)4<-7.03";
         srpn.processCommand(manualcommand);
 
 
