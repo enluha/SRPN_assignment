@@ -1,4 +1,5 @@
 import java.io.*;
+import java.util.regex.Pattern;
 
 class Main {
 
@@ -17,7 +18,7 @@ class Main {
 
         //Manual hardcoded input
 
-        String manualcommand = "1(92.)4*<-7.03-";//"-1(92)4<-7.03";
+        String manualcommand = "/00.1(92.)";
         srpn.processCommand(manualcommand);
 
 
