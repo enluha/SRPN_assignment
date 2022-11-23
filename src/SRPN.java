@@ -10,16 +10,20 @@ import java.util.regex.Pattern;
 public class SRPN {
 
     //Fields
-    char[] charArray_SRPN_operator_symbols = { '.', ' ', 'd', '+', '-', '*', '/' , '%', '^' };
+    char[] charArray_SRPN_operator_symbols = { '.', ' ', 'd', '+', '-', '*', '/' , '%', '^', '#'  };
+    char char_period_symbol = '.';
+    char char_space_symbol = ' ';
     char char_d_symbol = 'd';
     char char_plus_symbol = '+';
     char char_minus_symbol = '-';
     char char_asterisk_symbol = '*';
     char char_slash_symbol = '/';
-    //ArrayList<String> arraylistSRPN_operator_symbols = new ArrayList<>();
+    char char_modulus_symbol = '%';
+    char char_circumflex_symbol = '^';
+    char char_hash_symbol = '#';
+
     //Define ArrayList to store the split input string into processable string segments
     ArrayList<String> arrayListSplitInputString = new ArrayList<>();
-
 
     //Constructor
     Stack<String> stackSRPN = new Stack<>(); //creation of empty stack that stores inputs of string-type
@@ -55,19 +59,45 @@ public class SRPN {
     //arraylistSRPN_operator_symbols ArrayList.
     //The input string is split at the position of the relevant SRPN operators.
     public void splitStringIntoArrayList(String s) {
+
+        //Parameters
         int intStringLength = s.length();  //retrieve length of input String s
         StringBuilder str = new StringBuilder(1);  //use of the StringBuilder class to facilitate the append() function
+
+
+        //CASE 0: input String s is fully numeric, either positive or negative
+        if (isInt(s)) {
+            int sInt = Integer.parseInt(s);
+            if (sInt < 0) {  //input String is a negative number
+                str.append(s.charAt(0));  //insert first char (minus symbol) into str String
+                addStringIntoArrayList(str.toString(),arrayListSplitInputString);  //add the minus symbol into arrayListSplitInputString
+                addStringIntoArrayList(s.substring(1),arrayListSplitInputString);  //add full input String s into arrayListSplitInputString
+                return;
+            } else {  //input String is a positive number
+                addStringIntoArrayList(s,arrayListSplitInputString);  //add full input String s into arrayListSplitInputString
+                return;
+            }
+        }
 
         //CASE 1: input String s is formed by a single char
         if (intStringLength == 1) {
             str.append(s.charAt(0));  //insert test char at i-iteration into str String
             addStringIntoArrayList(str.toString(),arrayListSplitInputString);  //add single char into arrayListSplitInputString
+            //return;
+            str.deleteCharAt(0);  //clear str
+            System.out.println("str value at end of loop =" + str);
 
         //CASE 2: input String s is formed by more than a single char
         } else {
 
         for (int i=0; i<intStringLength;i++){  //iterates across all characters of input String s
-             str.append(s.charAt(i));  //insert test char at i-iteration into str String
+
+            //str String is the string formed by a single char being tested in the loop
+            if (!str.isEmpty()) {
+                str.deleteCharAt(0); //remove any residual contents of str String from previous iterations
+            }
+
+            str.append(s.charAt(i));  //insert test char at i-iteration into str String
 
              if (!isInt(str.toString())){ //if non-numeric char is found at i-iteration
                  //System.out.println("Non-numeric char found: s.charAt(" + i + ")='" + s.charAt(i) + "'");
@@ -76,39 +106,46 @@ public class SRPN {
                  if (i == 0){  //if non-numeric char is found at first position of input string s
                      addStringIntoArrayList(str.toString(),arrayListSplitInputString);  //add non-numeric char into arrayListSplitInputString
                      //addStringIntoArrayList(parts[1],arrayListSplitInputString);  //add right-side part of the split
+
                      splitStringIntoArrayList(parts[1]);  //recursive call to splitStringIntoArrayList to split the right-side part further
+
+                     break; //end loop after recursive calls
 
                  } else if (i>0 && i<(intStringLength-1)) {  //if non-numeric char is found at a position other than the first one (index > 0)
                      addStringIntoArrayList(parts[0],arrayListSplitInputString);  //add left-side part of the split into arrayListSplitInputString
                      addStringIntoArrayList(str.toString(),arrayListSplitInputString);  //add non-numeric char
                      //addStringIntoArrayList(parts[1],arrayListSplitInputString);  //add right-side part of the split
+
                      splitStringIntoArrayList(parts[1]);  //recursive call to splitStringIntoArrayList to split the right-side part further
+
+                     break; //end loop after recursive calls
 
                  } else {  //if non-numeric char is found at the last position of the string
                      addStringIntoArrayList(parts[0],arrayListSplitInputString);  //add right-side part of the split into arrayListSplitInputString
                      addStringIntoArrayList(str.toString(),arrayListSplitInputString);  //add non-numeric char
+
                  }
                  //error control
                  //System.out.println("Output parts=" + parts[0]);
                  //System.out.println("Output parts[0]=" + Arrays.toString(parts));
                  //System.out.println("Length of = arrayListSplitInputString = " + arrayListSplitInputString.size());
+
                  }
-                 //System.out.println("Parts[]=" + Arrays.toString(parts));
+
+             }
+            //System.out.println("Parts[]=" + Arrays.toString(parts));
                  //System.out.println("Length of Parts[]=" + parts.length);
 
                  //System.out.println("charArray_SRPN_operator_symbols[" + j + "]=" + charArray_SRPN_operator_symbols[j]);
                  //addStringIntoArrayList(Arrays.toString(parts));
 
-            str.deleteCharAt(0);  //clear str ((((((((((neccesary?????)))))))))))
+            //str.deleteCharAt(0);  //clear str ((((((((((neccesary?????)))))))))))
         }
-        }
-        System.out.println("str value at end of loop =" + str);
-        //str.deleteCharAt(0);  //clear str ((((((((((neccesary?????)))))))))))
 
-
-
+        //CASE 3: input String s is empty
+        //in this case no string is added into arrayListSplitInputString ArrayList
     }
-    //}
+
 
 
     /*public void splitStringIntoArrayList(String s) {
