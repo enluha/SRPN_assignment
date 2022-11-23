@@ -18,7 +18,7 @@ class Main {
 
         //Manual hardcoded input
 
-        String manualcommand = "3 3 ^ 3 ^ 3 ^=";
+        String manualcommand = "-00ca-1ca00";
         srpn.processCommand(manualcommand);
 
     }
