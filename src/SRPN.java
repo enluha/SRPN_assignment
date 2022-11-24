@@ -1,5 +1,4 @@
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Stack;
 import java.util.regex.Pattern;
 
@@ -10,22 +9,33 @@ import java.util.regex.Pattern;
 
 public class SRPN {
 
-    // Fields
-    char[] charArray_SRPN_operator_symbols = { '.', ' ', 'd', '+', '-', '*', '/', '%', '^', '#' };
-    char char_period_symbol = '.';
-    char char_space_symbol = ' ';
-    char char_d_symbol = 'd';
-    char char_plus_symbol = '+';
-    char char_minus_symbol = '-';
-    char char_asterisk_symbol = '*';
-    char char_slash_symbol = '/';
-    char char_modulus_symbol = '%';
-    char char_circumflex_symbol = '^';
-    char char_hash_symbol = '#';
+    //Fields, parameters
+    long intMaxSaturationVal = 2147483647;
+    long intMinSaturationVal = -2147483648;
+    char[] charArraySrpnOperatorSymbols = { '.', ' ', 'd', '+', '-', '*', '/', '%', '=', '^', '#', 'r' };
+    char[] charArrayArithmeticOperatorSymbols = { '+', '-', '*', '/', '%', '^' };
+    char charPeriodSymbol = '.';
+    char charSpaceSymbol = ' ';
+    char charDeeSymbol = 'd';
+    char charPlusSymbol = '+';
+    char charMinusSymbol = '-';
+    char charAsteriskSymbol = '*';
+    char charSlashSymbol = '/';
+    char charModulusSymbol = '%';
+    char charEqualSymbol = '=';
+    char charCircumflexSymbol = '^';
+    char charHashSymbol = '#';
+    char charArSymbol = 'r';
+    String strStackOverflow = "";
+    String strStackUnderflow = "";
+    String strNegativePower = "";
+
+    int intMaxStackSize = 23;  //controls max. size of stack, which is 23 for the legacy SRPN calculator
 
     // Define ArrayList to store the split input string into processable string
     // segments
     ArrayList<String> arrayListSplitInputString = new ArrayList<>();
+    int intArrayListSize;  //number of components in arrayListSplitInputString ArrayList
 
     // Constructor?
     Stack<String> stackSRPN = new Stack<>(); // creation of empty stack that stores inputs of string-type
@@ -36,15 +46,21 @@ public class SRPN {
     // - It prints out the output from the SRPN logic when applicable.
     public void processCommand(String s) {
 
-        //Call to method splits the input String s into segments containing chain of
-        //digits (numbers) and non-numerical
+        //Call to method that splits the input String s into segments containing chain of
+        //digits (numbers) & non-numerical characters and stores them in an Arraylist.
         splitStringIntoArrayList(s);
 
         //Lets print arrayListSplitInputString and see what we've got over theree - FOR TESTING ONLY
         System.out.println("arrayListSplitInputString=" + arrayListSplitInputString.toString());
 
-        //
-        processArrayList(arrayListSplitInputString);
+        //Call to method that process each component stored in the ArrayList
+        //(arrayListSplitInputString) in accordance with the intended SRPN logic.
+        intArrayListSize = arrayListSplitInputString.size();
+        System.out.println("ArrayListSize = " + intArrayListSize);
+
+        int i = 0;//for (int i = 0; i < intArrayListSize; i++) {
+            processArrayList(i, arrayListSplitInputString.get(i));
+        //}
 
         //Empty the contents of arrayListSplitInputString after each call to this
         //method (processCommand) before it is called again from the Main method.
@@ -53,9 +69,51 @@ public class SRPN {
 
     }
 
-    //processArrayList is the method that implements the SRPN logic including arithmetic
-    //operations, Stack functionality, and handling of exceptions.
-    public void processArrayList(ArrayList ArrL){
+    //- processArrayList is the method that implements the SRPN logic including arithmetic
+    //  operations, Stack functionality, and handling of exceptions.
+    //- It pulls the array components stored in the ArrayList input (arrayListSplitInputString)
+    //  one at a time, classifies them as integers, operator symbols and non-operator symbols,
+    //  and process them in accordance with the intended legacy SRPN logic.
+    public void processArrayList(int i, String s){ //public void processArrayList(ArrayList ArrL){
+        //Parameters
+        String previousArrayComponent = "";  //empty by default
+        String nextArrayComponent = "";  //empty by default
+        String strArithmeticOperatorSymbols = new String(charArrayArithmeticOperatorSymbols);
+        String strNonNumericSymbols = new String(charArraySrpnOperatorSymbols);
+
+        //Get previous ArrayList component
+        if (i != 0) {  //only if s String is not the first component of ArrayList
+            previousArrayComponent = arrayListSplitInputString.get(i-1);
+        }
+
+        //Get next ArrayList component
+        if (i+1 != intArrayListSize) {  //only if s String is not the last component of ArrayList
+            nextArrayComponent = arrayListSplitInputString.get(i+1);
+        }
+
+        //DELETEEEEEE
+        System.out.println("currentArrayComponent = " + s);
+        System.out.println("previousArrayComponent = " + previousArrayComponent);
+        System.out.println("nextArrayComponent = " + nextArrayComponent);
+        //DELETEEEEEE
+
+        //CASE 0: input String s is a number (it's formed by digit characters).
+        //Number is converted to a Long integer processed as follows:
+        // - if its the first component or of the ArrayList or is preceded by a space
+        //   (" ") then push integer into the stack.
+        // - if the next component is an arithmetic operation symbol, the do nothing.
+        // - perform stack overflow check before pushing integer into stack.
+        // - perform saturation check and process integer accordingly with max/min
+        //   Int limits.
+        if (isLong(s) && ( intArrayListSize==1 || !(strArithmeticOperatorSymbols.contains(nextArrayComponent)))) {  //s is the single component in the array of s preceded by a non-arithmetic
+            if (previousArrayComponent == asdfghi)
+
+            //System.out.println("--------------------------->NUMBER TO PUSH = " + s);
+        } else {  //s component is followed by an arithmetic operation symbol
+            //IMPLEMENT LOGIC: Evaluate a math expression given in string form using
+            return;  //do nothing FOR NOW
+        }
+        return;
 
     }
 
@@ -69,7 +127,7 @@ public class SRPN {
     //   an ArrayList<String> called arraylistSRPN_operator_symbols.
     public void splitStringIntoArrayList(String s) {
 
-        // Parameters
+        //Parameters
         int intStringLength = s.length(); // retrieve length of input String s
         StringBuilder str = new StringBuilder(1); // use of the StringBuilder class to facilitate the append() function
 
@@ -202,7 +260,37 @@ public class SRPN {
         }
     }
 
+    // Method that verifies if there is stack overflow (true if stack overflow)
+    public boolean stackOverflow(Stack inputStack) {
+        if (inputStack.size() >= intMaxStackSize) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
+    // Method that verifies if there is stack underflow (true if stack underflow)
+    public boolean stackUnderflow(Stack inputStack) {
+        if (inputStack.size() <= 1) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
+    // Method that process a signed numeric string argument by:
+    //  - converting it into a Long integer (64-bit).
+    //  - returning a signed Long integer of a max/min value in accordance
+    //  - with Integer (32-bit) saturation limits.
+    public Long processSaturation(String s) {
+        long testLong = Long.parseLong(s);  //convert numeric string into Long integer
+
+        if (testLong<0) {
+            testLong = Math.max(testLong,intMinSaturationVal);
+        } else {
+            testLong = Math.min(testLong,intMaxSaturationVal);
+        }
+        return testLong;
+    }
 
 }
