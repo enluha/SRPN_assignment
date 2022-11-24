@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.Stack;
 import java.util.regex.Pattern;
 
@@ -76,37 +77,54 @@ public class SRPN {
     //  and process them in accordance with the intended legacy SRPN logic.
     public void processArrayList(int i, String s){ //public void processArrayList(ArrayList ArrL){
         //Parameters
-        String previousArrayComponent = "";  //empty by default
-        String nextArrayComponent = "";  //empty by default
+        String strTwoPreviousArrayComponent = "";  //empty by default
+        String strPreviousArrayComponent = "";  //empty by default
+        String strNextArrayComponent = "";  //empty by default
         String strArithmeticOperatorSymbols = new String(charArrayArithmeticOperatorSymbols);
         String strNonNumericSymbols = new String(charArraySrpnOperatorSymbols);
 
+        //Get two-previous ArrayList component
+        if (i >= 2) {  //only if s String is the third or subsequent component of ArrayList
+            strTwoPreviousArrayComponent = arrayListSplitInputString.get(i-2);
+        }
+
         //Get previous ArrayList component
-        if (i != 0) {  //only if s String is not the first component of ArrayList
-            previousArrayComponent = arrayListSplitInputString.get(i-1);
+        if (i != 0) {  //only if s String is the second or subsequent component of ArrayList
+            strPreviousArrayComponent = arrayListSplitInputString.get(i-1);
         }
 
         //Get next ArrayList component
         if (i+1 != intArrayListSize) {  //only if s String is not the last component of ArrayList
-            nextArrayComponent = arrayListSplitInputString.get(i+1);
+            strNextArrayComponent = arrayListSplitInputString.get(i+1);
         }
 
         //DELETEEEEEE
         System.out.println("currentArrayComponent = " + s);
-        System.out.println("previousArrayComponent = " + previousArrayComponent);
-        System.out.println("nextArrayComponent = " + nextArrayComponent);
+        System.out.println("strTwoPreviousArrayComponent = " + strTwoPreviousArrayComponent);
+        System.out.println("strPreviousArrayComponent = " + strPreviousArrayComponent);
+        System.out.println("strNextArrayComponent = " + strNextArrayComponent);
         //DELETEEEEEE
 
         //CASE 0: input String s is a number (it's formed by digit characters).
         //Number is converted to a Long integer processed as follows:
-        // - if its the first component or of the ArrayList or is preceded by a space
+        // - if it is the first component or of the ArrayList or is preceded by a space
         //   (" ") then push integer into the stack.
         // - if the next component is an arithmetic operation symbol, the do nothing.
         // - perform stack overflow check before pushing integer into stack.
         // - perform saturation check and process integer accordingly with max/min
         //   Int limits.
-        if (isLong(s) && ( intArrayListSize==1 || !(strArithmeticOperatorSymbols.contains(nextArrayComponent)))) {  //s is the single component in the array of s preceded by a non-arithmetic
-            if (previousArrayComponent == asdfghi)
+        if (isLong(s) &&  //s is a numeric string AND
+                ( intArrayListSize==1 || //( s is the single component in array OR
+                        !(strArithmeticOperatorSymbols.contains(strNextArrayComponent)) ||  //following component in array in not an arithmetic symbol OR
+                                strNextArrayComponent.isEmpty())) {  //following component in array is empty )
+
+            if (Objects.equals(strPreviousArrayComponent, Character.toString(charMinusSymbol)) && //check if number is negative: there is a preceding minus AND
+                    (strTwoPreviousArrayComponent.isEmpty() || !isLong(strTwoPreviousArrayComponent))) {  //(there is no two-previous component OR the minus doesn't denote subtraction)
+                        System.out.println("NEGATIVE TO STACK!!!!!!!!!!!!!!!!!!!! Number pushed: "+ processParseSaturation(strPreviousArrayComponent+s));
+                        return;
+            } else {  //s is a positive number that qualifies to be pushed into stack
+                        System.out.println("NEGATIVE TO STACK!!!!!!!!!!!!!!!!!!!! Number pushed: "+ processParseSaturation(s));
+            }
 
             //System.out.println("--------------------------->NUMBER TO PUSH = " + s);
         } else {  //s component is followed by an arithmetic operation symbol
@@ -132,9 +150,9 @@ public class SRPN {
         StringBuilder str = new StringBuilder(1); // use of the StringBuilder class to facilitate the append() function
 
         // CASE 0: input String s is fully numeric, either positive or negative, one or more characters long
-        if (isInt(s)) {
-            int sInt = Integer.parseInt(s);
-            if (sInt < 0) { // input String is a negative number
+        if (isLong(s)) {
+            Long longS = processParseSaturation(s);
+            if (longS < 0) { // input String is a negative number
                 str.append(s.charAt(0)); // insert first char (minus symbol) into str String
                 addStringIntoArrayList(str.toString(), arrayListSplitInputString); // add the minus symbol into
                 // arrayListSplitInputString
@@ -168,7 +186,7 @@ public class SRPN {
 
                 str.append(s.charAt(i)); // insert test char at i-iteration into str String
 
-                if (!isInt(str.toString())) { // if non-numeric char is found at i-iteration
+                if (!isLong(str.toString())) { // if non-numeric char is found at i-iteration
 
                     String[] parts = s.split(Pattern.quote(str.toString()), 2); // split input String s into two parts at the location of non-numeric char found
 
@@ -199,7 +217,7 @@ public class SRPN {
             }
         }
     }
-
+//are these two methods constructors?? if so, move up to header area
     // Method that adds a string element into an ArrayList<String>
     public void addStringIntoArrayList(String s, ArrayList ArrL) {
         ArrL.add(s);
@@ -215,13 +233,8 @@ public class SRPN {
     public boolean isInt(String s) {
         try {
             int testInt = Integer.parseInt(s);
-
-            // System.out.println("isInt = True"); //commented in final version
-            // System.out.println(testInt); //commented in final version
             return true;
         } catch (NumberFormatException e) {
-            // throw new RuntimeException(e); //commented in final version
-            // System.out.println("isInt = False"); //commented in final version
             return false;
         }
     }
@@ -229,15 +242,19 @@ public class SRPN {
     // Method that verifies if a string argument is a Long integer (64-bit)
     // (positive or negative) and returns a boolean (True if Long)
     public boolean isLong(String s) {
-        try {
-            long testLong = Long.parseLong(s);
 
-            System.out.println("isLong = True"); // commented in final version
-            System.out.println(testLong); // commented in final version
+        String str;  //auxiliary string
+
+        if (s.length()>10) {  //if length of string is greater than the max length of an Integer
+            str = s.substring(s.length()-9,s.length());  //cut the long numerical strings and retain the 10-long string from the right-side
+        } else {
+            str = s;
+
+        }
+        try {
+            long testLong = Long.parseLong(str);
             return true;
         } catch (NumberFormatException e) {
-            // throw new RuntimeException(e); //commented in final version
-            System.out.println("isLong = False"); // commented in final version
             return false;
         }
     }
@@ -250,12 +267,8 @@ public class SRPN {
     public boolean isDouble(String s) {
         try {
             double testDouble = Double.parseDouble(s);
-            System.out.println("isDouble = True"); // commented in final version
-            System.out.println(testDouble); // commented in final version
             return true;
         } catch (NumberFormatException e) {
-            // throw new RuntimeException(e); //commented in final version
-            System.out.println("isDouble = False"); // commented in final version
             return false;
         }
     }
@@ -282,8 +295,17 @@ public class SRPN {
     //  - converting it into a Long integer (64-bit).
     //  - returning a signed Long integer of a max/min value in accordance
     //  - with Integer (32-bit) saturation limits.
-    public Long processSaturation(String s) {
-        long testLong = Long.parseLong(s);  //convert numeric string into Long integer
+    public Long processParseSaturation(String s) {
+
+        String str;  //auxiliary string
+
+        if (s.length()>10) {  //if length of string is greater than the max length of an Integer
+            str = s.substring(s.length()-9,s.length());  //cut the long numerical strings and retain the 10-long string from the right-side
+        } else {
+            str = s;
+        }
+System.out.println("str (processSaturation) =" + str +"  ("+str.length()+" numbers long)");
+        long testLong = Long.parseLong(str);  //convert numeric string into Long integer
 
         if (testLong<0) {
             testLong = Math.max(testLong,intMinSaturationVal);
