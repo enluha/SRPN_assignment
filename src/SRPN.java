@@ -34,6 +34,7 @@ public class SRPN {
     String strStackUnderflow = "Stack underflow.";
     String strNegativePower = "Negative power.";
     String strStackEmpty = "Stack empty.";
+    String strDivideByZero = "Divide by 0.";
 
 
     //CONSTRUCTORS
@@ -137,13 +138,22 @@ public class SRPN {
 
             if (Objects.equals(strPreviousArrayComponent, strMinusSymbol) && //check if number is negative: there is a preceding minus AND
                     (strTwoPreviousArrayComponent.isEmpty() || !isLong(strTwoPreviousArrayComponent))) {  //(there is no two-previous component OR the minus doesn't denote subtraction)
-                        System.out.println("NEGATIVE TO STACK!!!!!!!!!!!!!!!!!!!! Number pushed: "+ processParseSaturation(strPreviousArrayComponent+s));
-                        stackSRPN.push(Long.toString(processParseSaturation(strPreviousArrayComponent+s)));  //push negative number
-                        return;
+
+                if (stackOverflow(stackSRPN)) {
+                    return;
+                } else {                   System.out.println("NEGATIVE TO STACK!!!!!!!!!!!!!!!!!!!! Number pushed: "+ processParseSaturation(strPreviousArrayComponent+s));
+                    stackSRPN.push(Long.toString(processParseSaturation(strPreviousArrayComponent+s)));  //push negative number
+                    return;
+                }
+
             } else {  //s is a positive number that qualifies to be pushed into stack
-                        System.out.println("POSITIVE TO STACK!!!!!!!!!!!!!!!!!!!! Number pushed: "+ processParseSaturation(s));
-                        stackSRPN.push(Long.toString(processParseSaturation(strPreviousArrayComponent+s)));  //push negative number
-                        return;
+
+                if (stackOverflow(stackSRPN)) {
+                    return;
+                } else {                   System.out.println("POSITIVE TO STACK!!!!!!!!!!!!!!!!!!!! Number pushed: "+ processParseSaturation(s));
+                    stackSRPN.push(Long.toString(processParseSaturation(s)));  //push positive number
+                    return;
+                }
             }
         } else if (isLong(s) &&  //s is a numeric string AND
                 strArithmeticOperatorSymbols.contains(strNextArrayComponent) ) {  //s component is followed by an arithmetic operation symbol
@@ -183,6 +193,19 @@ public class SRPN {
                 return;  //do nothing
             } else {
                 System.out.println("Unrecognised operator or operand \"" + s + "\".");
+                return;
+            }
+        }
+
+        //CASE XX: input String s is an equal symbol. Processing logic is as follows:
+        // - calls the peek() function from the stack.
+        // - if the stack is empty, print the corresponding msg.
+        if (Objects.equals(s, strEqualSymbol) ) {
+            if (stackSRPN.empty()) {
+                System.out.println(strStackEmpty);
+                return;
+            } else {
+                System.out.println(stackSRPN.peek());
                 return;
             }
         }
@@ -361,7 +384,7 @@ public class SRPN {
     int intSLengthMinusOne = s.length()-1;
     int intStrLength;
     String strFirstChar = s.substring(0, 1);
-    String strTrimmed;
+    String strTrimmed = "0";
     String strSaturated;
     int intTrimStartIndex;
     int intVarIndex = 0;
@@ -373,30 +396,47 @@ public class SRPN {
     Long longIntMaxVal = Long.parseLong(Integer.toString(Integer.MAX_VALUE));
     Long longIntMinVal = Long.parseLong(Integer.toString(Integer.MIN_VALUE));
 
-    //Process to remove redundant zeroes at the left
-    //Set start index depending on number sign
-    if (strFirstChar.equals("-")) {
-        intTrimStartIndex = 1;
-    } else {
-        intTrimStartIndex = 0;
-    }
 
-    //Get index where row of zeroes end
-    for (int i = intTrimStartIndex; i <= intSLengthMinusOne; i++) {
-        strTrimmed = s.substring(i, i+1);
-        if (strTrimmed.equals("0")){
-            intVarIndex = i;
+    //Handling of redundant zeroes preceding integers and trimming accordingly
+    if (strFirstChar.equals("-") && intSLength==2) {  //if number is single digit negative
+        if (Objects.equals(s.substring(1, 2), "0")) {
+            strTrimmed = "0";
         } else {
-            break;
+            strTrimmed = s;
+        }
+    } else if (intSLength==1) {  //if number is single digit unsigned
+        if (Objects.equals(s.substring(0, 1), "0")) {
+            strTrimmed = "0";
+        } else {
+            strTrimmed = s;
+        }
+    } else {  //if number is has more than one digit and is either positive or negative
+        //Process to remove redundant zeroes at the left
+        //Set start index depending on number sign
+        if (strFirstChar.equals("-")) {
+            intTrimStartIndex = 1;
+        } else {
+            intTrimStartIndex = 0;
+        }
+
+        //Get index where row of zeroes end
+        for (int i = intTrimStartIndex; i <= intSLengthMinusOne; i++) {
+            strTrimmed = s.substring(i, i+1);
+            if (strTrimmed.equals("0")){
+                intVarIndex = i;
+            } else {
+                break;
+            }
+        }
+
+        //Trim string s accordingly and store it in str string
+        if (strFirstChar.equals("-")) {
+            strTrimmed = "-" + s.substring(intVarIndex+1, intSLength);
+        } else {
+            strTrimmed = s.substring(intVarIndex, intSLength);
         }
     }
 
-    //Trim string s accordingly and store it in str string
-    if (strFirstChar.equals("-")) {
-        strTrimmed = "-" + s.substring(intVarIndex+1, intSLength);
-    } else {
-        strTrimmed = s.substring(intVarIndex, intSLength);
-    }
 
     //Trim strTrimmed if length is greater than 38 (max. accuracy of this calculator)
     intSLength = strTrimmed.length();
