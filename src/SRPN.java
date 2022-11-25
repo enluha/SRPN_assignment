@@ -11,35 +11,51 @@ import java.util.regex.Pattern;
 public class SRPN {
 
     //Fields, parameters
+    int intMaxStackSize = 23;  //controls max. size of stack, which is 23 for the legacy SRPN calculator
     long intMaxSaturationVal = 2147483647;
     long intMinSaturationVal = -2147483648;
-    char[] charArraySrpnOperatorSymbols = { '.', ' ', 'd', '+', '-', '*', '/', '%', '=', '^', '#', 'r' };
+    char[] charArraySrpnOperatorSymbols = { ' ', 'd', '+', '-', '*', '/', '%', '=', '^', '#', 'r' };
     char[] charArrayArithmeticOperatorSymbols = { '+', '-', '*', '/', '%', '^' };
-    char charPeriodSymbol = '.';
-    char charSpaceSymbol = ' ';
-    char charDeeSymbol = 'd';
-    char charPlusSymbol = '+';
-    char charMinusSymbol = '-';
-    char charAsteriskSymbol = '*';
-    char charSlashSymbol = '/';
-    char charModulusSymbol = '%';
-    char charEqualSymbol = '=';
-    char charCircumflexSymbol = '^';
-    char charHashSymbol = '#';
-    char charArSymbol = 'r';
-    String strStackOverflow = "";
-    String strStackUnderflow = "";
-    String strNegativePower = "";
+    String strArithmeticOperatorSymbols = new String(charArrayArithmeticOperatorSymbols);
+    String strSrpnOperatorSymbols = new String(charArraySrpnOperatorSymbols);
+    String strPeriodSymbol = ".";
+    String strSpaceSymbol = " ";
+    String strDeeSymbol = "d";
+    String strPlusSymbol = "+";
+    String strMinusSymbol = "-";
+    String strAsteriskSymbol = "*";
+    String strSlashSymbol = "/";
+    String strModulusSymbol = "%";
+    String strEqualSymbol = "=";
+    String strCircumflexSymbol = "^";
+    String strHashSymbol = "#";
+    String strArSymbol = "r";
+    String strStackOverflow = "Stack overflow.";
+    String strStackUnderflow = "Stack underflow.";
+    String strNegativePower = "Negative power.";
+    String strStackEmpty = "Stack empty.";
 
-    int intMaxStackSize = 23;  //controls max. size of stack, which is 23 for the legacy SRPN calculator
 
-    // Define ArrayList to store the split input string into processable string
-    // segments
+    //CONSTRUCTORS
+    //Method that adds a string element into an ArrayList<String>*/
+    public void addStringIntoArrayList(String s, ArrayList ArrL) {
+        ArrL.add(s);
+    }
+
+    //Method that removes all the existing elements from an ArrayList<String>
+    public void clearArrayList(ArrayList ArrL) {
+        ArrL.clear();
+    }
+
+
+    //Define ArrayList to store the split input string into processable string segments
     ArrayList<String> arrayListSplitInputString = new ArrayList<>();
     int intArrayListSize;  //number of components in arrayListSplitInputString ArrayList
 
-    // Constructor?
+
+    //Define new object instance from the native Stack Class
     Stack<String> stackSRPN = new Stack<>(); // creation of empty stack that stores inputs of string-type
+
 
     // - processCommand is the main method within the SRPN class. It's responsible for
     //   processing the input String s pushed from the Main method by calling the rest of
@@ -59,14 +75,17 @@ public class SRPN {
         intArrayListSize = arrayListSplitInputString.size();
         System.out.println("ArrayListSize = " + intArrayListSize);
 
-        int i = 0;//for (int i = 0; i < intArrayListSize; i++) {
+        /*int i = 0;*/
+        for (int i = 0; i < intArrayListSize; i++) {
             processArrayList(i, arrayListSplitInputString.get(i));
-        //}
+        }
 
         //Empty the contents of arrayListSplitInputString after each call to this
         //method (processCommand) before it is called again from the Main method.
         clearArrayList(arrayListSplitInputString);
-        System.out.println("arrayListSplitInputString=" + arrayListSplitInputString.toString());
+        System.out.println("arrayListSplitInputString = " + arrayListSplitInputString.toString());
+        //TESTING DELETE
+        System.out.println("stackSRPN = " + stackSRPN.toString());
 
     }
 
@@ -80,8 +99,6 @@ public class SRPN {
         String strTwoPreviousArrayComponent = "";  //empty by default
         String strPreviousArrayComponent = "";  //empty by default
         String strNextArrayComponent = "";  //empty by default
-        String strArithmeticOperatorSymbols = new String(charArrayArithmeticOperatorSymbols);
-        String strNonNumericSymbols = new String(charArraySrpnOperatorSymbols);
 
         //Get two-previous ArrayList component
         if (i >= 2) {  //only if s String is the third or subsequent component of ArrayList
@@ -98,12 +115,12 @@ public class SRPN {
             strNextArrayComponent = arrayListSplitInputString.get(i+1);
         }
 
-        //DELETEEEEEE
+        /** //DELETEEEEEE
         System.out.println("currentArrayComponent = " + s);
         System.out.println("strTwoPreviousArrayComponent = " + strTwoPreviousArrayComponent);
         System.out.println("strPreviousArrayComponent = " + strPreviousArrayComponent);
         System.out.println("strNextArrayComponent = " + strNextArrayComponent);
-        //DELETEEEEEE
+        //DELETEEEEEE*/
 
         //CASE 0: input String s is a number (it's formed by digit characters).
         //Number is converted to a Long integer processed as follows:
@@ -118,22 +135,67 @@ public class SRPN {
                         !(strArithmeticOperatorSymbols.contains(strNextArrayComponent)) ||  //following component in array in not an arithmetic symbol OR
                                 strNextArrayComponent.isEmpty())) {  //following component in array is empty )
 
-            if (Objects.equals(strPreviousArrayComponent, Character.toString(charMinusSymbol)) && //check if number is negative: there is a preceding minus AND
+            if (Objects.equals(strPreviousArrayComponent, strMinusSymbol) && //check if number is negative: there is a preceding minus AND
                     (strTwoPreviousArrayComponent.isEmpty() || !isLong(strTwoPreviousArrayComponent))) {  //(there is no two-previous component OR the minus doesn't denote subtraction)
                         System.out.println("NEGATIVE TO STACK!!!!!!!!!!!!!!!!!!!! Number pushed: "+ processParseSaturation(strPreviousArrayComponent+s));
+                        stackSRPN.push(Long.toString(processParseSaturation(strPreviousArrayComponent+s)));  //push negative number
                         return;
             } else {  //s is a positive number that qualifies to be pushed into stack
                         System.out.println("POSITIVE TO STACK!!!!!!!!!!!!!!!!!!!! Number pushed: "+ processParseSaturation(s));
+                        stackSRPN.push(Long.toString(processParseSaturation(strPreviousArrayComponent+s)));  //push negative number
+                        return;
             }
+        } else if (isLong(s) &&  //s is a numeric string AND
+                strArithmeticOperatorSymbols.contains(strNextArrayComponent) ) {  //s component is followed by an arithmetic operation symbol
 
-            //System.out.println("--------------------------->NUMBER TO PUSH = " + s);
-        } else {  //s component is followed by an arithmetic operation symbol
             //IMPLEMENT LOGIC: Evaluate a math expression given in string form using
+            System.out.println("DO NOTHING ACTION - LOGIC FOR IN-LINE OPERATIONS STILL NOT IMPLEMENTED");
             return;  //do nothing FOR NOW
         }
+
+        //CASE XX: input String s is a "d" symbol.
+        //Processing logic is as follows:
+        // - existing components of the stack are pulled and printed one at a time.
+        // - if the stack is empty, the Stack Underflow msg is printed.
+        if (Objects.equals(s, strDeeSymbol)) {
+            if (stackSRPN.empty()) {
+                System.out.println(strStackEmpty);
+                return;
+            } else {
+                for (String strComponent : stackSRPN) {
+                    System.out.println(strComponent);
+                }
+                return;
+            }
+        }
+
+        //CASE XX: input String s is a non-numeric, a non-arithmetic or a non
+        //SRPN operator symbol.
+        //Processing logic is as follows:
+        // - if the symbol is a space " " symbol then the method returns void (does nothing).
+        // - if the symbol is not a space symbol then prints the appropriate error.
+        if (!isLong(s) &&  //s not numeric AND
+                !strArithmeticOperatorSymbols.contains(s) &&  //s not operator symbol AND
+                    ( !strSrpnOperatorSymbols.contains(s) ||  // ( s not operator symbol AND
+                        Objects.equals(s, strSpaceSymbol) )) {
+
+            if (Objects.equals(s, strSpaceSymbol)) {
+                return;  //do nothing
+            } else {
+                System.out.println("Unrecognised operator or operand \"" + s + "\".");
+                return;
+            }
+        }
+
+
+
         return;
 
+
     }
+
+
+
 
     // - splitStringIntoArrayList is a method that is called from this SRPN class and
     //   from itself (recursive calls).
@@ -217,16 +279,6 @@ public class SRPN {
             }
         }
     }
-//are these two methods constructors?? if so, move up to header area
-    // Method that adds a string element into an ArrayList<String>
-    public void addStringIntoArrayList(String s, ArrayList ArrL) {
-        ArrL.add(s);
-    }
-
-    // Method that removes all the existing elements from an ArrayList<String>
-    public void clearArrayList(ArrayList ArrL) {
-        ArrL.clear();
-    }
 
     // Method that verifies if a string argument is an Int (32-bit) and returns a
     // boolean (True if integer)
@@ -245,8 +297,8 @@ public class SRPN {
 
         String str;  //auxiliary string
 
-        if (s.length()>12) {  //if length of string is greater than the max length of an Integer
-            str = s.substring(s.length()-11,s.length());  //cut the long numerical strings and retain the 10-long string from the right-side
+        if (s.length()>19) {  //if length of string is greater than the max length of an Integer
+            str = s.substring(s.length()-18,s.length());  //cut the long numerical strings and retain the 10-long string from the right-side
         } else {
             str = s;
 
@@ -273,18 +325,22 @@ public class SRPN {
         }
     }
 
-    // Method that verifies if there is stack overflow (true if stack overflow)
+    /** Method that verifies if there is stack overflow (true if stack overflow)
+    and writes the corresponding error msg.*/
     public boolean stackOverflow(Stack inputStack) {
         if (inputStack.size() >= intMaxStackSize) {
+            System.out.println(strStackOverflow);
             return true;
         } else {
             return false;
         }
     }
 
-    // Method that verifies if there is stack underflow (true if stack underflow)
+    /** Method that verifies if there is stack underflow (true if stack underflow)
+    */
     public boolean stackUnderflow(Stack inputStack) {
         if (inputStack.size() <= 1) {
+            System.out.println(strStackUnderflow);
             return true;
         } else {
             return false;
@@ -292,13 +348,15 @@ public class SRPN {
     }
 
     // Method that process a signed numeric string argument by:
-    //  - converting it into a Long integer (64-bit).
-    //  - returning a signed Long integer of a max/min value in accordance
-    //    with Integer (32-bit) saturation limits.
+    //  - removing any preceding / redundant zeroes.
+    //  - split the string in two strings of 19 digits max. if length is of input
+    //    string is greater than 38 (max. accuracy of this calculator!).
+    //  - convert the string into a Long integer (64-bit) and adjust its value
+    //    to suit max/min saturation limits for integers.
+    //  - return the resulting signed Long integer
     public Long processParseSaturation(String s) {
 
     //Parameters
-    //String s = "100";//"-10000000000000000000000000000000000";
     int intSLength = s.length();
     int intSLengthMinusOne = s.length()-1;
     int intStrLength;
@@ -314,7 +372,6 @@ public class SRPN {
     Long longProcessedInt;
     Long longIntMaxVal = Long.parseLong(Integer.toString(Integer.MAX_VALUE));
     Long longIntMinVal = Long.parseLong(Integer.toString(Integer.MIN_VALUE));
-
 
     //Process to remove redundant zeroes at the left
     //Set start index depending on number sign
@@ -340,11 +397,6 @@ public class SRPN {
     } else {
         strTrimmed = s.substring(intVarIndex, intSLength);
     }
-//DELETEEEE
-    System.out.println("-------------------------------------------");
-    System.out.println("strTrimmed after zero trimming = " + strTrimmed);
-    System.out.println("-------------------------------------------");
-
 
     //Trim strTrimmed if length is greater than 38 (max. accuracy of this calculator)
     intSLength = strTrimmed.length();
@@ -385,23 +437,9 @@ public class SRPN {
             longProcessedInt = Math.min(longPartRight, longIntMaxVal);
         }
     }
-
-
-    //DELETEEE
-    System.out.println("intSLength = s.length() = " + s.length());
-    System.out.println("strFirstChar = " + s.substring(0, 1));
-    System.out.println("strSaturated = " + strSaturated);
-    System.out.println("strSaturated.length() = " + strSaturated.length());
-    System.out.println("-------------------------------------------");
-    System.out.println("-------------------------------------------");
-    //System.out.println("intSplitIndex = " + intSplitIndex);
-    System.out.println("strPartRight = " + strPartRight);
-    System.out.println("strPartLeft = " + strPartLeft);
-    System.out.println("longProcessedInt = " + longProcessedInt);
-
     return longProcessedInt;
-
     }
+
 
 
 
