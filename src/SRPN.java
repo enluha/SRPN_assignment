@@ -123,7 +123,7 @@ public class SRPN {
                         System.out.println("NEGATIVE TO STACK!!!!!!!!!!!!!!!!!!!! Number pushed: "+ processParseSaturation(strPreviousArrayComponent+s));
                         return;
             } else {  //s is a positive number that qualifies to be pushed into stack
-                        System.out.println("NEGATIVE TO STACK!!!!!!!!!!!!!!!!!!!! Number pushed: "+ processParseSaturation(s));
+                        System.out.println("POSITIVE TO STACK!!!!!!!!!!!!!!!!!!!! Number pushed: "+ processParseSaturation(s));
             }
 
             //System.out.println("--------------------------->NUMBER TO PUSH = " + s);
@@ -245,8 +245,8 @@ public class SRPN {
 
         String str;  //auxiliary string
 
-        if (s.length()>10) {  //if length of string is greater than the max length of an Integer
-            str = s.substring(s.length()-9,s.length());  //cut the long numerical strings and retain the 10-long string from the right-side
+        if (s.length()>12) {  //if length of string is greater than the max length of an Integer
+            str = s.substring(s.length()-11,s.length());  //cut the long numerical strings and retain the 10-long string from the right-side
         } else {
             str = s;
 
@@ -294,25 +294,197 @@ public class SRPN {
     // Method that process a signed numeric string argument by:
     //  - converting it into a Long integer (64-bit).
     //  - returning a signed Long integer of a max/min value in accordance
-    //  - with Integer (32-bit) saturation limits.
+    //    with Integer (32-bit) saturation limits.
     public Long processParseSaturation(String s) {
 
-        String str;  //auxiliary string
+    //Parameters
+    //String s = "100";//"-10000000000000000000000000000000000";
+    int intSLength = s.length();
+    int intSLengthMinusOne = s.length()-1;
+    int intStrLength;
+    String strFirstChar = s.substring(0, 1);
+    String strTrimmed;
+    String strSaturated;
+    int intTrimStartIndex;
+    int intVarIndex = 0;
+    String strPartLeft = "0"; // right-side split part
+    String strPartRight = "0"; // left-side split part
+    Long longPartLeft;
+    Long longPartRight;
+    Long longProcessedInt;
+    Long longIntMaxVal = Long.parseLong(Integer.toString(Integer.MAX_VALUE));
+    Long longIntMinVal = Long.parseLong(Integer.toString(Integer.MIN_VALUE));
 
-        if (s.length()>10) {  //if length of string is greater than the max length of an Integer
-            str = s.substring(s.length()-9,s.length());  //cut the long numerical strings and retain the 10-long string from the right-side
+
+    //Process to remove redundant zeroes at the left
+    //Set start index depending on number sign
+    if (strFirstChar.equals("-")) {
+        intTrimStartIndex = 1;
+    } else {
+        intTrimStartIndex = 0;
+    }
+
+    //Get index where row of zeroes end
+    for (int i = intTrimStartIndex; i <= intSLengthMinusOne; i++) {
+        strTrimmed = s.substring(i, i+1);
+        if (strTrimmed.equals("0")){
+            intVarIndex = i;
+        } else {
+            break;
+        }
+    }
+
+    //Trim string s accordingly and store it in str string
+    if (strFirstChar.equals("-")) {
+        strTrimmed = "-" + s.substring(intVarIndex+1, intSLength);
+    } else {
+        strTrimmed = s.substring(intVarIndex, intSLength);
+    }
+//DELETEEEE
+    System.out.println("-------------------------------------------");
+    System.out.println("strTrimmed after zero trimming = " + strTrimmed);
+    System.out.println("-------------------------------------------");
+
+
+    //Trim strTrimmed if length is greater than 38 (max. accuracy of this calculator)
+    intSLength = strTrimmed.length();
+    if (intSLength > 38) {
+        if (strFirstChar.equals("-")) {
+            strSaturated = strTrimmed.substring(0, 39);
+        } else {
+            strSaturated = strTrimmed.substring(0, 38);
+        }
+    } else {
+        strSaturated = strTrimmed;
+    }
+
+    //If length of string is greater than 19 (Long limit) then split the string in two
+    intStrLength = strSaturated.length();
+    if (intSLength <= 19) {
+        strPartRight = strSaturated;
+    } else {
+        int intSplitIndex = intStrLength - 19;
+        strPartLeft = strSaturated.substring(0,intSplitIndex);
+        strPartRight = strSaturated.substring(intSplitIndex,intStrLength);
+    }
+
+    longPartLeft = Long.parseLong(strPartLeft);
+    longPartRight = Long.parseLong(strPartRight);
+
+    //Adjust string value according to max/min. Integer limits
+    if (strFirstChar.equals("-")) {  //negative number
+        if (longPartLeft < 0){
+            longProcessedInt = longIntMinVal;
+        } else {
+            longProcessedInt = Math.max(longPartRight, longIntMinVal);
+        }
+    } else {  //positive number
+        if (longPartLeft > 0){
+            longProcessedInt = longIntMaxVal;
+        } else {
+            longProcessedInt = Math.min(longPartRight, longIntMaxVal);
+        }
+    }
+
+
+    //DELETEEE
+    System.out.println("intSLength = s.length() = " + s.length());
+    System.out.println("strFirstChar = " + s.substring(0, 1));
+    System.out.println("strSaturated = " + strSaturated);
+    System.out.println("strSaturated.length() = " + strSaturated.length());
+    System.out.println("-------------------------------------------");
+    System.out.println("-------------------------------------------");
+    //System.out.println("intSplitIndex = " + intSplitIndex);
+    System.out.println("strPartRight = " + strPartRight);
+    System.out.println("strPartLeft = " + strPartLeft);
+    System.out.println("longProcessedInt = " + longProcessedInt);
+
+    return longProcessedInt;
+
+    }
+
+
+
+
+        /**
+        int intSLength = s.length();
+        String strFirstChar = s.substring(0,1);  //obtain first character of string
+        String str;  //auxiliary string
+        String strPartLeft;  //right-side split part
+        String strPartRight;  //left-side split part
+
+        //Max precision of this SRPN calculator is 38 digits-long integers.
+        //Otherwise the s string is trimmed from the right to fit a 38 digits-long integer
+        if (intSLength > 38) {
+            if (strFirstChar.equals("-")) {
+                str = s.substring(0, 39);
+            } else {
+                str = s.substring(0, 38);
+            }
+        } else {
+            str = s;
+        }
+
+        //Now the string is split into two parts that can fit into two Long integers
+        if (intSLength <= 19) {
+            strPartRight = str;  //no need of defining a right part
+        } else {
+            strPartRight = str.substring(0,intSLength-19);
+            strPartLeft = str.substring(intSLength-19,intSLength);
+        }
+
+
+
+
+
+        String str;  //auxiliary string
+        String strPar1 =
+
+        if (s.length()>38) {  //if length of string is greater than the max length of an Integer
+            if (strFirstChar.equals(Character.toString(charMinusSymbol))) {  //first character of s is the minus symbol
+                str = strFirstChar + s.substring(s.length()-37,s.length());  //cut the long numerical strings and retain the 10-long string from the right-side
+            } else {
+                str = s.substring(s.length()-9,s.length());
+            }
+        } else {
+            str = s;
+        }
+
+
+
+
+
+
+
+
+
+
+
+        if (s.length()>12) {  //if length of string is greater than the max length of an Integer
+            if (strFirstChar.equals(Character.toString(charMinusSymbol))) {  //first character of s is the minus symbol
+                str = strFirstChar + s.substring(s.length()-11,s.length());  //cut the long numerical strings and retain the 10-long string from the right-side
+            } else {
+                str = s.substring(s.length()-9,s.length());
+            }
         } else {
             str = s;
         }
 System.out.println("str (processSaturation) =" + str +"  ("+str.length()+" numbers long)");
-        long testLong = Long.parseLong(str);  //convert numeric string into Long integer
+        long longStr = Long.parseLong(str);  //convert numeric string into Long integer
 
-        if (testLong<0) {
-            testLong = Math.max(testLong,intMinSaturationVal);
+        if (longStr<0) {
+            longStr = Math.max(longStr,intMinSaturationVal);
         } else {
-            testLong = Math.min(testLong,intMaxSaturationVal);
+            longStr = Math.min(longStr,intMaxSaturationVal);
         }
-        return testLong;
+        return longStr;
+
     }
+
+
+ */
+
+
+
 
 }
