@@ -18,7 +18,7 @@ class Main {
 
         //Manual hardcoded input
         //String strManualCommand = "-1234567898765432101234567899"
-        String strManualCommand =   "11 3 --1111111111111111111111111d";//"10 2 +";//"-1--5";//"-22.98+1234-2s";"-1 -2 -d"
+        String strManualCommand =   "100 0 /2 3 -1 . d 5 **+=";//"10 2 +";//"-1--5";//"-22.98+1234-2s";"-1 -2 -d"
         srpn.processCommand(strManualCommand);
 
     }

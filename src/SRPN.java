@@ -1,5 +1,4 @@
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.Stack;
 import java.util.regex.Pattern;
@@ -26,7 +25,7 @@ public class SRPN {
     String strMinusSymbol = "-";
     String strAsteriskSymbol = "*";
     String strSlashSymbol = "/";
-    String strModulusSymbol = "%";
+    String strModuloSymbol = "%";
     String strEqualSymbol = "=";
     String strCircumflexSymbol = "^";
     String strHashSymbol = "#";
@@ -69,26 +68,6 @@ public class SRPN {
         }
     }
 
-/*
-    //Method that executes a pop() operation in a stack and verifies there is no stack underflow.
-    public String stackPop(Stack inputStack, String s) {
-        if (stackUnderflow(inputStack)) {
-            continue;
-        } else {
-            inputStack.pop();  //push positive number
-        }
-    }*/
-
-/*    //Method that executes a push() operation in a stack and verifies there is no stack overflow.
-    public void stackPush(Stack inputStack, String s) {
-        if (stackOverflow(stackSRPN)) {
-            return;
-        } else {
-            stackSRPN.push(Long.toString(processParseSaturation(s)));  //push positive number
-            return;
-        }
-    }*/
-
 
     // - processCommand is the main method within the SRPN class. It's responsible for
     //   processing the input String s pushed from the Main method by calling the rest of
@@ -100,13 +79,10 @@ public class SRPN {
         //digits (numbers) & non-numerical characters and stores them in an Arraylist.
         splitStringIntoArrayList(s);
 
-        //Lets print arrayListSplitInputString and see what we've got over theree - FOR TESTING ONLY
-        System.out.println("arrayListSplitInputString=" + arrayListSplitInputString.toString());
 
         //Call to method that process each component stored in the ArrayList
         //(arrayListSplitInputString) in accordance with the intended SRPN logic.
         intArrayListSize = arrayListSplitInputString.size();
-        System.out.println("ArrayListSize = " + intArrayListSize);
 
         /*int i = 0;*/
         for (int i = 0; i < intArrayListSize; i++) {
@@ -116,9 +92,6 @@ public class SRPN {
         //Empty the contents of arrayListSplitInputString after each call to this
         //method (processCommand) before it is called again from the Main method.
         clearArrayList(arrayListSplitInputString);
-        System.out.println("arrayListSplitInputString = " + arrayListSplitInputString.toString());
-        //TESTING DELETE
-        System.out.println("stackSRPN = " + stackSRPN.toString());
 
     }
 
@@ -132,6 +105,7 @@ public class SRPN {
         String strTwoPreviousArrayComponent = "";  //empty by default
         String strPreviousArrayComponent = "";  //empty by default
         String strNextArrayComponent = "";  //empty by default
+        String strTwoNextArrayComponent = "";  //empty by default
 
         //Get two-previous ArrayList component
         if (i >= 2) {  //only if s String is the third or subsequent component of ArrayList
@@ -144,16 +118,15 @@ public class SRPN {
         }
 
         //Get next ArrayList component
-        if (i+1 != intArrayListSize) {  //only if s String is not the last component of ArrayList
+        if (i < (intArrayListSize-1)) {  //only if s String is not the last component of ArrayList
             strNextArrayComponent = arrayListSplitInputString.get(i+1);
         }
 
-        /** //DELETEEEEEE
-        System.out.println("currentArrayComponent = " + s);
-        System.out.println("strTwoPreviousArrayComponent = " + strTwoPreviousArrayComponent);
-        System.out.println("strPreviousArrayComponent = " + strPreviousArrayComponent);
-        System.out.println("strNextArrayComponent = " + strNextArrayComponent);
-        //DELETEEEEEE*/
+        //Get two-next ArrayList component
+        if (i < (intArrayListSize-2)) {  //only if s String is not the last component of ArrayList
+            strTwoNextArrayComponent = arrayListSplitInputString.get(i+2);
+        }
+
 
         //CASE 1: input String s is a number (it's formed by digit characters).
         //Number is converted to a Long integer processed as follows:
@@ -163,60 +136,21 @@ public class SRPN {
         // - perform stack overflow check before pushing integer into stack.
         // - perform saturation check and process integer accordingly with max/min
         //   Int limits.
+        if ( isLong(s) && //s is a numeric string AND (
+                ( !(strArithmeticOperatorSymbols.contains(strPreviousArrayComponent) && isLong(strTwoPreviousArrayComponent)) ||  // s NOT preceded by an arithmetic operation symbol and a number OR
+                        !(strArithmeticOperatorSymbols.contains(strTwoNextArrayComponent) && isLong(strTwoNextArrayComponent)) ) ) {  // s NOT followed by an arithmetic operation symbol and a number )
 
+            //Push numeric string s including stack overflow check
+            stackPush(stackSRPN, Long.toString(processParseSaturation(s)));
+            return;
 
-        if (isLong(s) &&  //s is a numeric string AND
-                ( intArrayListSize==1 || //( s is the single component in array OR
-                        !(strArithmeticOperatorSymbols.contains(strNextArrayComponent)) ||  //following component in array in not an arithmetic symbol OR
-                        strNextArrayComponent.isEmpty())) {  //following component in array is empty )
+        } else if ( isLong(s) && //s is a numeric string AND (
+                ( (strArithmeticOperatorSymbols.contains(strPreviousArrayComponent) && isLong(strTwoPreviousArrayComponent)) ||  // s not preceded by an arithmetic operation symbol and a number NOR
+                        (strArithmeticOperatorSymbols.contains(strTwoNextArrayComponent) && isLong(strTwoNextArrayComponent)) ) ) {  // s not followed by an arithmetic operation symbol and a number )
 
-            if (Objects.equals(strPreviousArrayComponent, strMinusSymbol) && //check if number is negative: there is a preceding minus AND
-                    (strTwoPreviousArrayComponent.isEmpty() || !isLong(strTwoPreviousArrayComponent))) {  //(there is no two-previous component OR the minus doesn't denote subtraction)
-
-                stackPush(stackSRPN, Long.toString(processParseSaturation(s)));
-
-            } else {  //s is a positive number that qualifies to be pushed into stack
-
-                stackPush(stackSRPN, Long.toString(processParseSaturation(s)));
-
-            }
-        } else if (isLong(s) &&  //s is a numeric string AND
-                strArithmeticOperatorSymbols.contains(strNextArrayComponent) ) {  //s component is followed by an arithmetic operation symbol
-
-            //IMPLEMENT LOGIC: Evaluate a math expression given in string form using
-            System.out.println("DO NOTHING ACTION - LOGIC FOR IN-LINE OPERATIONS STILL NOT IMPLEMENTED");
-            return;  //do nothing FOR NOW
+            //In-line equation solving functionality  goes here. It has not been implemented yet due to time constraints
+            return; //do nothing with string s
         }
-
-
-
-
-        ///////////////////////////// DELETE /////////////////////////////////////////////////////////////////////////////////////////
-        /*
-        if (isLong(s) &&  //s is a numeric string AND
-                ( intArrayListSize==1 || //( s is the single component in array OR
-                        !(strArithmeticOperatorSymbols.contains(strNextArrayComponent)) ||  //following component in array in not an arithmetic symbol OR
-                                strNextArrayComponent.isEmpty())) {  //following component in array is empty )
-
-            if (Objects.equals(strPreviousArrayComponent, strMinusSymbol) && //check if number is negative: there is a preceding minus AND
-                    (strTwoPreviousArrayComponent.isEmpty() || !isLong(strTwoPreviousArrayComponent))) {  //(there is no two-previous component OR the minus doesn't denote subtraction)
-
-                stackPush(stackSRPN, Long.toString(processParseSaturation(s)));
-
-            } else {  //s is a positive number that qualifies to be pushed into stack
-
-                stackPush(stackSRPN, Long.toString(processParseSaturation(s)));
-
-            }
-        } else if (isLong(s) &&  //s is a numeric string AND
-                strArithmeticOperatorSymbols.contains(strNextArrayComponent) ) {  //s component is followed by an arithmetic operation symbol
-
-            //IMPLEMENT LOGIC: Evaluate a math expression given in string form using
-            System.out.println("DO NOTHING ACTION - LOGIC FOR IN-LINE OPERATIONS STILL NOT IMPLEMENTED");
-            return;  //do nothing FOR NOW
-        }
-*/
-        ///////////////////////////// DELETE /////////////////////////////////////////////////////////////////////////////////////////
 
 
         //CASE 2: input String s is a "-" symbol.
@@ -227,14 +161,14 @@ public class SRPN {
         //
         // - if the input string (current arrayListSplitInputString component) is
         //   the only component in arrayListSplitInputString OR if the following
-        //   component of the string is any non-numeric symbol, then apply the
+        //   component of the string is any non-numeric symbol, then execute the
         //   subtraction operation to the two first items of the stack.
         //
         // - if the following component of arrayListSplitInputString is numeric string,
         //   then sign the following numeric string of arrayListSplitInputString and
         //   replace the input string (current arrayListSplitInputString component)
         //   with a space " " symbol.
-        if (Objects.equals(s, strMinusSymbol) && ((arrayListSplitInputString.size() == 1) ||  //minus symbols is the only existing component in ArrayList
+        if (Objects.equals(s, strMinusSymbol) && ((arrayListSplitInputString.size() == 1) ||  //string s is the only existing component in ArrayList
                 !isLong(strNextArrayComponent))) {  //the ArrayList component following the minus symbol is non-numeric
 
                 if (stackSRPN.size() < 2) {  //at least 2 elements need to be present in stack
@@ -266,7 +200,282 @@ public class SRPN {
 
         }
 
-        //CASE XX: input String s is a "=" symbol.
+
+        //CASE 3: input String s is a "+" symbol.
+        //Processing logic is as follows:
+        //
+        // - performs the addition arithmetic operation of the two first elements in
+        //   the stack.
+        //
+        // - the in-line equation solving functionality from the legacy SRPN has not
+        //   been implemented due to time constraints. This algorithm will detect this
+        //   obscure scenario and no execute any push() nor arithmetic operation.
+        //
+        // - if the input string (current arrayListSplitInputString component) is
+        //   preceded by an arithmetic operation symbol and a number (in-line equation
+        //   solving functionality) NOR followed by an arithmetic operation
+        //   symbol and a number (in-line equation solving functionality).
+        //
+        // - otherwise it will then execute the addition  operation to the two first
+        //   items of the stack.
+        if ( Objects.equals(s, strPlusSymbol) && //s is a "+" symbol AND (
+                ( !(isLong(strPreviousArrayComponent) && strArithmeticOperatorSymbols.contains(strTwoPreviousArrayComponent)) ||  // s NOT preceded by a number and an arithmetic operation symbol NOR
+                        !(isLong(strNextArrayComponent) && strArithmeticOperatorSymbols.contains(strTwoNextArrayComponent)) ) ) {  // s NOT followed by a number and an arithmetic operation symbol )
+
+            if (stackSRPN.size() < 2) {  //at least 2 elements need to be present in stack
+                System.out.println(strStackUnderflow);
+                return;
+            } else {  //SRPN addition is performed
+
+                //Store pop() elements into auxiliary variables and process them for integer saturation
+                String stringBufferNum1 = stackSRPN.pop();  //extract first element in stack
+                String stringBufferNum2 = stackSRPN.pop();  //extract second element in stack
+                Long longBufferNum1 = processParseSaturation(stringBufferNum1);
+                Long longBufferNum2 = processParseSaturation(stringBufferNum2);
+
+                //Execute arithmetic operation
+                Long longResult = longBufferNum2 + longBufferNum1;
+                stringBufferNum1 = Long.toString(longResult);
+
+                //Push result including stack overflow check
+                stackPush(stackSRPN, Long.toString(processParseSaturation(stringBufferNum1)));
+
+                return;
+            }
+
+        } else if ( Objects.equals(s, strPlusSymbol) && //s is a "+" symbol AND (
+                ( (isLong(strPreviousArrayComponent) && strArithmeticOperatorSymbols.contains(strTwoPreviousArrayComponent)) ||  // s IS preceded by a number and an arithmetic operation symbol OR
+                        (isLong(strNextArrayComponent) && strArithmeticOperatorSymbols.contains(strTwoNextArrayComponent)) ) ) {  // s IS followed by a number and an arithmetic operation symbol )
+
+            //In-line equation solving functionality goes here. It has not been implemented yet due to time constraints
+            return; //do nothing with string s
+        }
+
+
+        //CASE 4: input String s is a "*" symbol.
+        //Processing logic is as follows:
+        //
+        // - performs the multiplication arithmetic operation of the two first elements in
+        //   the stack.
+        //
+        // - the in-line equation solving functionality from the legacy SRPN has not
+        //   been implemented due to time constraints. This algorithm will detect this
+        //   obscure scenario and no execute any push() nor arithmetic operation.
+        //
+        // - if the input string (current arrayListSplitInputString component) is
+        //   preceded by an arithmetic operation symbol and a number (in-line equation
+        //   solving functionality) NOR followed by an arithmetic operation
+        //   symbol and a number (in-line equation solving functionality).
+        //
+        // - otherwise it will then execute the multiplication operation to the two first
+        //   items of the stack.
+        if ( Objects.equals(s, strAsteriskSymbol) && //s is a "*" symbol AND (
+                ( !(isLong(strPreviousArrayComponent) && strArithmeticOperatorSymbols.contains(strTwoPreviousArrayComponent)) ||  // s NOT preceded by a number and an arithmetic operation symbol NOR
+                        !(isLong(strNextArrayComponent) && strArithmeticOperatorSymbols.contains(strTwoNextArrayComponent)) ) ) {  // s NOT followed by a number and an arithmetic operation symbol )
+
+            if (stackSRPN.size() < 2) {  //at least 2 elements need to be present in stack
+                System.out.println(strStackUnderflow);
+                return;
+            } else {  //SRPN multiplication is performed
+
+                //Store pop() elements into auxiliary variables and process them for integer saturation
+                String stringBufferNum1 = stackSRPN.pop();  //extract first element in stack
+                String stringBufferNum2 = stackSRPN.pop();  //extract second element in stack
+                Long longBufferNum1 = processParseSaturation(stringBufferNum1);
+                Long longBufferNum2 = processParseSaturation(stringBufferNum2);
+
+                //Execute arithmetic operation
+                Long longResult = longBufferNum2 * longBufferNum1;
+                stringBufferNum1 = Long.toString(longResult);
+
+                //Push result including stack overflow check
+                stackPush(stackSRPN, Long.toString(processParseSaturation(stringBufferNum1)));
+
+                return;
+            }
+
+        } else if ( Objects.equals(s, strAsteriskSymbol) && //s is a "*" symbol AND (
+                ( (isLong(strPreviousArrayComponent) && strArithmeticOperatorSymbols.contains(strTwoPreviousArrayComponent)) ||  // s IS preceded by a number and an arithmetic operation symbol OR
+                        (isLong(strNextArrayComponent) && strArithmeticOperatorSymbols.contains(strTwoNextArrayComponent)) ) ) {  // s IS followed by a number and an arithmetic operation symbol )
+
+            //In-line equation solving functionality goes here. It has not been implemented yet due to time constraints
+            return; //do nothing with string s
+        }
+
+
+        //CASE 5: input String s is a "/" symbol.
+        //Processing logic is as follows:
+        //
+        // - performs the division arithmetic operation of the two first elements in
+        //   the stack.
+        //
+        // - the in-line equation solving functionality from the legacy SRPN has not
+        //   been implemented due to time constraints. This algorithm will detect this
+        //   obscure scenario and no execute any push() nor arithmetic operation.
+        //
+        // - if the input string (current arrayListSplitInputString component) is
+        //   preceded by an arithmetic operation symbol and a number (in-line equation
+        //   solving functionality) NOR followed by an arithmetic operation
+        //   symbol and a number (in-line equation solving functionality).
+        //
+        // - otherwise it will then execute the division operation to the two first
+        //   items of the stack.
+        if ( Objects.equals(s, strSlashSymbol) && //s is a "/" symbol AND (
+                ( !(isLong(strPreviousArrayComponent) && strArithmeticOperatorSymbols.contains(strTwoPreviousArrayComponent)) ||  // s NOT preceded by a number and an arithmetic operation symbol NOR
+                        !(isLong(strNextArrayComponent) && strArithmeticOperatorSymbols.contains(strTwoNextArrayComponent)) ) ) {  // s NOT followed by a number and an arithmetic operation symbol )
+
+            if (stackSRPN.size() < 2) {  //at least 2 elements need to be present in stack
+                System.out.println(strStackUnderflow);
+                return;
+            } else {  //SRPN division is performed
+
+                //Store pop() elements into auxiliary variables and process them for integer saturation
+                String stringBufferNum1 = stackSRPN.pop();  //extract first element in stack
+                String stringBufferNum2 = stackSRPN.pop();  //extract second element in stack
+                Long longBufferNum1 = processParseSaturation(stringBufferNum1);
+                Long longBufferNum2 = processParseSaturation(stringBufferNum2);
+
+                //Check for division by 0 exception
+                int intDivCheck = Integer.parseInt(stringBufferNum1);
+                if (intDivCheck == 0) {
+                    System.out.println(strDivideByZero);
+                    return;
+                }
+
+                //Execute arithmetic operation
+                Long longResult = longBufferNum2 / longBufferNum1;
+                stringBufferNum1 = Long.toString(longResult);
+
+                //Push result including stack overflow check
+                stackPush(stackSRPN, Long.toString(processParseSaturation(stringBufferNum1)));
+
+                return;
+            }
+
+        } else if ( Objects.equals(s, strSlashSymbol) && //s is a "/" symbol AND (
+                ( (isLong(strPreviousArrayComponent) && strArithmeticOperatorSymbols.contains(strTwoPreviousArrayComponent)) ||  // s IS preceded by a number and an arithmetic operation symbol OR
+                        (isLong(strNextArrayComponent) && strArithmeticOperatorSymbols.contains(strTwoNextArrayComponent)) ) ) {  // s IS followed by a number and an arithmetic operation symbol )
+
+            //In-line equation solving functionality goes here. It has not been implemented yet due to time constraints
+            return; //do nothing with string s
+        }
+
+
+        //CASE 6: input String s is a "%" symbol.
+        //Processing logic is as follows:
+        //
+        // - performs the modulo arithmetic operation of the two first elements in
+        //   the stack.
+        //
+        // - the in-line equation solving functionality from the legacy SRPN has not
+        //   been implemented due to time constraints. This algorithm will detect this
+        //   obscure scenario and no execute any push() nor arithmetic operation.
+        //
+        // - if the input string (current arrayListSplitInputString component) is
+        //   preceded by an arithmetic operation symbol and a number (in-line equation
+        //   solving functionality) NOR followed by an arithmetic operation
+        //   symbol and a number (in-line equation solving functionality).
+        //
+        // - otherwise it will then execute the modulo operation to the two first
+        //   items of the stack.
+        if ( Objects.equals(s, strModuloSymbol) && //s is a "%" symbol AND (
+                ( !(isLong(strPreviousArrayComponent) && strArithmeticOperatorSymbols.contains(strTwoPreviousArrayComponent)) ||  // s NOT preceded by a number and an arithmetic operation symbol NOR
+                        !(isLong(strNextArrayComponent) && strArithmeticOperatorSymbols.contains(strTwoNextArrayComponent)) ) ) {  // s NOT followed by a number and an arithmetic operation symbol )
+
+            if (stackSRPN.size() < 2) {  //at least 2 elements need to be present in stack
+                System.out.println(strStackUnderflow);
+                return;
+            } else {  //SRPN modulo is performed
+
+                //Store pop() elements into auxiliary variables and process them for integer saturation
+                String stringBufferNum1 = stackSRPN.pop();  //extract first element in stack
+                String stringBufferNum2 = stackSRPN.pop();  //extract second element in stack
+                Long longBufferNum1 = processParseSaturation(stringBufferNum1);
+                Long longBufferNum2 = processParseSaturation(stringBufferNum2);
+
+                //Execute arithmetic operation
+                Long longResult = longBufferNum2 % longBufferNum1;
+                stringBufferNum1 = Long.toString(longResult);
+
+                //Push result including stack overflow check
+                stackPush(stackSRPN, Long.toString(processParseSaturation(stringBufferNum1)));
+
+                return;
+            }
+
+        } else if ( Objects.equals(s, strModuloSymbol) && //s is a "%" symbol AND (
+                ( (isLong(strPreviousArrayComponent) && strArithmeticOperatorSymbols.contains(strTwoPreviousArrayComponent)) ||  // s IS preceded by a number and an arithmetic operation symbol OR
+                        (isLong(strNextArrayComponent) && strArithmeticOperatorSymbols.contains(strTwoNextArrayComponent)) ) ) {  // s IS followed by a number and an arithmetic operation symbol )
+
+            //In-line equation solving functionality goes here. It has not been implemented yet due to time constraints
+            return; //do nothing with string s
+        }
+
+
+        //CASE 7: input String s is a "^" symbol.
+        //Processing logic is as follows:
+        //
+        // - performs the exponentiation arithmetic operation of the two first elements in
+        //   the stack.
+        //
+        // - the in-line equation solving functionality from the legacy SRPN has not
+        //   been implemented due to time constraints. This algorithm will detect this
+        //   obscure scenario and no execute any push() nor arithmetic operation.
+        //
+        // - if the input string (current arrayListSplitInputString component) is
+        //   preceded by an arithmetic operation symbol and a number (in-line equation
+        //   solving functionality) NOR followed by an arithmetic operation
+        //   symbol and a number (in-line equation solving functionality).
+        //
+        // - otherwise it will then execute the exponentiation operation to the two first
+        //   items of the stack.
+        if ( Objects.equals(s, strCircumflexSymbol) && //s is a "^" symbol AND (
+                ( !(isLong(strPreviousArrayComponent) && strArithmeticOperatorSymbols.contains(strTwoPreviousArrayComponent)) ||  // s NOT preceded by a number and an arithmetic operation symbol NOR
+                        !(isLong(strNextArrayComponent) && strArithmeticOperatorSymbols.contains(strTwoNextArrayComponent)) ) ) {  // s NOT followed by a number and an arithmetic operation symbol )
+
+            if (stackSRPN.size() < 2) {  //at least 2 elements need to be present in stack
+                System.out.println(strStackUnderflow);
+                return;
+            } else {  //SRPN exponentiation is performed
+
+                //Store pop() elements into auxiliary variables and process them for integer saturation
+                String stringBufferNum1 = stackSRPN.pop();  //extract first element in stack
+                String stringBufferNum2 = stackSRPN.pop();  //extract second element in stack
+
+                Long longBufferNum1 = processParseSaturation(stringBufferNum1);
+                Long longBufferNum2 = processParseSaturation(stringBufferNum2);
+
+                //Check for negative power exception
+                if (longBufferNum1 < 0) {
+                    System.out.println(strNegativePower);
+                    return;
+                }
+
+                //Convert long to doubles to allow for the exponentiation primitive method
+                double doubleBufferNum1 = (double) longBufferNum1;
+                double doubleBufferNum2 = (double) longBufferNum2;
+
+                //Execute arithmetic operation
+                double doubleResult = Math.pow(doubleBufferNum2,doubleBufferNum1);
+                long longResult = (long) doubleResult;
+                stringBufferNum2 = Long.toString(longResult);
+
+                //Push result including stack overflow check
+                stackPush(stackSRPN, Long.toString(processParseSaturation(stringBufferNum2)));
+
+                return;
+            }
+
+        } else if ( Objects.equals(s, strCircumflexSymbol) && //s is a "^" symbol AND (
+                ( (isLong(strPreviousArrayComponent) && strArithmeticOperatorSymbols.contains(strTwoPreviousArrayComponent)) ||  // s IS preceded by a number and an arithmetic operation symbol OR
+                        (isLong(strNextArrayComponent) && strArithmeticOperatorSymbols.contains(strTwoNextArrayComponent)) ) ) {  // s IS followed by a number and an arithmetic operation symbol )
+
+            //In-line equation solving functionality goes here. It has not been implemented yet due to time constraints
+            return; //do nothing with string s
+        }
+
+
+        //CASE 8: input String s is a "=" symbol.
         //Processing logic is as follows:
         // - existing components of the stack are pulled and printed one at a time.
         // - if the stack is empty, the Stack Underflow msg is printed.
@@ -280,7 +489,8 @@ public class SRPN {
             }
         }
 
-        //CASE XX: input String s is a "d" symbol.
+
+        //CASE 9: input String s is a "d" symbol.
         //Processing logic is as follows:
         // - existing components of the stack are pulled and printed one at a time.
         // - if the stack is empty, the Stack Underflow msg is printed.
@@ -296,7 +506,8 @@ public class SRPN {
             }
         }
 
-        //CASE XX: input String s is a non-numeric, a non-arithmetic or a non
+
+        //CASE 10: input String s is a non-numeric, a non-arithmetic or a non
         //SRPN operator symbol.
         //Processing logic is as follows:
         // - if the symbol is a space " " symbol then the method returns void (does nothing).
@@ -314,7 +525,8 @@ public class SRPN {
             }
         }
 
-        //CASE XX: input String s is an equal symbol. Processing logic is as follows:
+
+        //CASE 11: input String s is an equal symbol. Processing logic is as follows:
         // - calls the peek() function from the stack.
         // - if the stack is empty, print the corresponding msg.
         if (Objects.equals(s, strEqualSymbol) ) {
@@ -328,12 +540,7 @@ public class SRPN {
         }
 
 
-
-        return;
-
-
     }
-
 
 
 
@@ -357,9 +564,9 @@ public class SRPN {
             if (longS < 0) { // input String is a negative number
                 str.append(s.charAt(0)); // insert first char (minus symbol) into str String
                 addStringIntoArrayList(str.toString(), arrayListSplitInputString); // add the minus symbol into
-                // arrayListSplitInputString
+
                 addStringIntoArrayList(s.substring(1), arrayListSplitInputString); // add full input String s into
-                // arrayListSplitInputString
+
                 return;
             } else { // input String is a positive number
                 addStringIntoArrayList(s, arrayListSplitInputString); // add full input String s into arrayListSplitInputString
@@ -371,10 +578,11 @@ public class SRPN {
         if (intStringLength == 1) {
             str.append(s.charAt(0)); // insert test char at i-iteration into str String
             addStringIntoArrayList(str.toString(), arrayListSplitInputString); // add single char into
-            // arrayListSplitInputString
-            // return;
+
             str.deleteCharAt(0); // clear str
-            System.out.println("str value at end of loop =" + str);
+            //String str2 = str;
+
+            //int intStrL = str.length();
 
         // CASE 2: input String s is formed by more than a single char and contains one or more non-numeric characters
         } else {
@@ -382,7 +590,7 @@ public class SRPN {
             for (int i = 0; i < intStringLength; i++) { // iterates across all characters of input String s
 
                 // str String is the string formed by a single char being tested in the loop
-                if (!str.isEmpty()) {
+                if (str.length()>=1) {  //
                     str.deleteCharAt(0); // remove any residual contents of str String from previous iterations
                 }
 
@@ -399,15 +607,12 @@ public class SRPN {
                         break; // end loop after recursive calls
 
                     } else if (i > 0 && i < (intStringLength - 1)) { // if non-numeric char is found at a position other than the
-                        // first one (index > 0)
+
                         addStringIntoArrayList(parts[0], arrayListSplitInputString); // add left-side part of the split into
-                        // arrayListSplitInputString
+
                         addStringIntoArrayList(str.toString(), arrayListSplitInputString); // add non-numeric char
-                        // addStringIntoArrayList(parts[1],arrayListSplitInputString); //add right-side
-                        // part of the split
 
                         splitStringIntoArrayList(parts[1]); // recursive call to splitStringIntoArrayList to split the right-side
-                        // part further
 
                         break; // end loop after recursive calls
 
@@ -596,89 +801,6 @@ public class SRPN {
     }
     return longProcessedInt;
     }
-
-
-
-
-
-        /**
-        int intSLength = s.length();
-        String strFirstChar = s.substring(0,1);  //obtain first character of string
-        String str;  //auxiliary string
-        String strPartLeft;  //right-side split part
-        String strPartRight;  //left-side split part
-
-        //Max precision of this SRPN calculator is 38 digits-long integers.
-        //Otherwise the s string is trimmed from the right to fit a 38 digits-long integer
-        if (intSLength > 38) {
-            if (strFirstChar.equals("-")) {
-                str = s.substring(0, 39);
-            } else {
-                str = s.substring(0, 38);
-            }
-        } else {
-            str = s;
-        }
-
-        //Now the string is split into two parts that can fit into two Long integers
-        if (intSLength <= 19) {
-            strPartRight = str;  //no need of defining a right part
-        } else {
-            strPartRight = str.substring(0,intSLength-19);
-            strPartLeft = str.substring(intSLength-19,intSLength);
-        }
-
-
-
-
-
-        String str;  //auxiliary string
-        String strPar1 =
-
-        if (s.length()>38) {  //if length of string is greater than the max length of an Integer
-            if (strFirstChar.equals(Character.toString(charMinusSymbol))) {  //first character of s is the minus symbol
-                str = strFirstChar + s.substring(s.length()-37,s.length());  //cut the long numerical strings and retain the 10-long string from the right-side
-            } else {
-                str = s.substring(s.length()-9,s.length());
-            }
-        } else {
-            str = s;
-        }
-
-
-
-
-
-
-
-
-
-
-
-        if (s.length()>12) {  //if length of string is greater than the max length of an Integer
-            if (strFirstChar.equals(Character.toString(charMinusSymbol))) {  //first character of s is the minus symbol
-                str = strFirstChar + s.substring(s.length()-11,s.length());  //cut the long numerical strings and retain the 10-long string from the right-side
-            } else {
-                str = s.substring(s.length()-9,s.length());
-            }
-        } else {
-            str = s;
-        }
-System.out.println("str (processSaturation) =" + str +"  ("+str.length()+" numbers long)");
-        long longStr = Long.parseLong(str);  //convert numeric string into Long integer
-
-        if (longStr<0) {
-            longStr = Math.max(longStr,intMinSaturationVal);
-        } else {
-            longStr = Math.min(longStr,intMaxSaturationVal);
-        }
-        return longStr;
-
-    }
-
-
- */
-
 
 
 
